@@ -1,0 +1,269 @@
+Vi arbejder med relationen:
+
+- **En Region har mange Kommuner** → OneToMany
+    
+- **En Kommune har én Region** → ManyToOne
+    
+
+---
+
+## 1. Opret Spring projekt
+
+- Nyt Spring projekt → **Maven**
+    
+- Tilføj dependencies: Spring Web, JPA, H2 Database, MySQL Driver
+    
+- Projekt: `JPAManyToOne`
+    
+
+---
+
+## 2. Region entity
+
+- Min. 3 properties: `kode`, `navn`, `href`
+    
+
+```Java
+@Entity
+public class Region {
+
+    @Id
+    private String kode;
+    private String navn;
+    private String href;
+
+    @OneToMany(mappedBy = "region")
+    @JsonBackReference
+    private Set<Kommune> kommuner = new HashSet<>();
+
+    // getters og setters
+}
+```
+
+
+**Forklaring:**
+
+- `@OneToMany(mappedBy = "region")` → 1 Region har mange Kommuner
+    
+- `@JsonBackReference` → stopper uendelig rekursion ved JSON-serialisering
+    
+- `Set` sikrer unikke Kommuner pr Region
+    
+
+---
+
+## 3. Kommune entity
+
+```Java
+@Entity
+public class Kommune {
+
+    @Id
+    private String kode;
+    private String navn;
+
+    @ManyToOne
+    @JoinColumn(name = "regionkode", referencedColumnName = "kode", nullable = false)
+    private Region region;
+
+    // getters og setters
+}
+```
+
+
+**Forklaring:**
+
+- `@ManyToOne` → mange Kommuner kan pege på samme Region
+    
+- `@JoinColumn` definerer foreign key `regionkode` i Kommune-tabellen
+    
+- `nullable = false` → Kommune skal have en Region
+    
+
+---
+
+## 4. Repositories
+
+```Java
+public interface RegionRepository extends JpaRepository<Region, String> {
+}
+
+public interface KommuneRepository extends JpaRepository<Kommune, String> {
+}
+```
+
+
+- JpaRepository giver CRUD-metoder automatisk
+    
+
+---
+
+## 5. Service til at hente Regioner
+
+### Bean for RestTemplate
+
+```Java
+@Configuration
+public class RestTemplateConfig {
+
+    @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+        System.out.println("builder en rest");
+        return builder.build();
+    }
+}
+```
+
+
+### Interface
+
+```Java
+public interface ApiServiceGetRegioner {
+    List<Region> getRegioner();
+}
+```
+
+
+### Implementation
+
+```Java
+@Service
+public class ApiServiceGetRegionerImpl implements ApiServiceGetRegioner {
+
+    private final RestTemplate restTemplate;
+
+    @Autowired
+    private RegionRepository regionRepository;
+
+    public ApiServiceGetRegionerImpl(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    private void saveRegioner(List<Region> regioner) {
+        regionRepository.saveAll(regioner);
+    }
+
+    @Override
+    public List<Region> getRegioner() {
+        String regionUrl = "https://api.dataforsyningen.dk/regioner";
+        ResponseEntity<List<Region>> regionResponse =
+            restTemplate.exchange(regionUrl, HttpMethod.GET, null,
+                new ParameterizedTypeReference<List<Region>>() {});
+        List<Region> regioner = regionResponse.getBody();
+        saveRegioner(regioner);
+        return regioner;
+    }
+}
+```
+
+
+---
+
+## 6. ToolRestController – kald service fra browser
+
+```Java
+@RestController
+public class ToolRestController {
+
+    @Autowired
+    private ApiServiceGetRegioner apiServiceGetRegioner;
+
+    @GetMapping("/tool/getregioner")
+    public List<Region> getRegioner() {
+        return apiServiceGetRegioner.getRegioner();
+    }
+}
+```
+
+
+- Browser: `http://localhost:8080/tool/getregioner`
+    
+- Regioner bliver hentet fra API og gemt i database
+    
+
+---
+
+## 7. Service til at hente Kommuner
+
+- Interface: `ApiServiceGetKommuner`
+    
+- Implementation: `ApiServiceGetKommunerImpl` → ligner `GetRegionerImpl`
+    
+- Husk at knytte hver Kommune til korrekt Region via `regionkode`
+    
+
+---
+
+## 8. KommuneRestController
+
+```Java
+@RestController
+public class KommuneRestController {
+
+    @Autowired
+    private KommuneRepository kommuneRepository;
+
+    @GetMapping("/tool/getkommuner")
+    public List<Kommune> getKommuner() {
+        return kommuneRepository.findAll();
+    }
+}
+```
+
+
+- Browser kan hente alle Kommuner med korrekt fremmednøgle til Region
+    
+
+---
+
+## 9. application.properties
+
+```Java
+spring.datasource.url=jdbc:mysql://127.0.0.1:3306/regionkommune
+spring.datasource.username=jens
+spring.datasource.password=x
+spring.jpa.hibernate.ddl-auto=create-drop
+spring.jpa.show-sql=true
+```
+
+
+- `create-drop` → databasen startes fra scratch hver gang
+    
+- Ved `update` bevares data mellem kørsel
+    
+
+---
+
+## 10. Opgaver og eksperimenter
+
+### DeleteMapping med cascade
+
+```Java
+@DeleteMapping("/region/{kode}")
+public void deleteRegion(@PathVariable String kode) {
+    regionRepository.deleteById(kode);
+}
+```
+
+
+- Med `cascade = CascadeType.ALL` → alle Kommuner med denne Region slettes automatisk
+    
+- Uden cascade → fejl, fordi foreign key constraint forhindrer sletning
+    
+
+### Liste af Kommuner i en Region
+
+```Java
+@GetMapping("/region/{kode}/kommuner")
+public Set<String> getKommunerNavne(@PathVariable String kode) {
+    Region region = regionRepository.findById(kode).orElseThrow();
+    return region.getKommuner()
+                 .stream()
+                 .map(Kommune::getNavn)
+                 .collect(Collectors.toSet());
+}
+```
+
+- Bruger `OneToMany` mappingen fra Region
+    
+- Returnerer navne på alle Kommuner i en given Region

@@ -1,0 +1,246 @@
+Vi laver vores første **Spring Boot projekt med JPA**, H2 og MySQL.
+
+Links til reference:
+
+- [Baeldung – Spring Data JPA](https://www.baeldung.com/the-persistence-layer-with-spring-data-jpa)
+    
+- [Spring.io – Spring Data JPA](https://spring.io/projects/spring-data-jpa)
+    
+
+---
+
+## 1. Opret nyt Spring projekt
+
+- Vælg **Maven** som build tool.
+    
+- Vælg **Spring Boot version 3.3.2** (default).
+    
+- Tilføj dependencies:
+    
+    - Spring Web
+        
+    - Spring Data JPA
+        
+    - H2 Database
+        
+    - MySQL Driver
+        
+- Projektstruktur:
+    
+    - `pom.xml` viser dependencies.
+        
+    - IntelliJ markerer nogle dependencies med gule highlights (advarsler).
+        
+
+---
+
+## 2. Opret modelklassen Student
+
+1. Højreklik på `com.example.jpastudent` → **New Package** → `model`
+    
+2. Opret klasse `Student` med følgende instance variable:
+    
+    - id
+        
+    - name
+        
+    - bornDate
+        
+    - bornTime
+        
+
+```Java  
+public class Student {  
+private int id;  
+private String name;  
+private LocalDate bornDate;  
+private LocalTime bornTime;
+
+`// getters og setters`
+
+}  
+```
+
+---
+
+## 3. Hook op til JPA
+
+```Java  
+import jakarta.persistence.*;
+
+@Entity  
+public class Student {  
+@Id  
+@GeneratedValue(strategy = GenerationType.IDENTITY)  
+private int id;
+
+`private String name; private LocalDate bornDate; private LocalTime bornTime;  // getters og setters`
+
+}  
+```
+
+**Forklaring:**
+
+- `@Entity` gør klassen til en JPA entity.
+    
+- `@Id` angiver primærnøgle.
+    
+- `@GeneratedValue(strategy = GenerationType.IDENTITY)` betyder auto-increment i databasen.
+    
+
+---
+
+## 4. Konfiguration – H2 Database
+
+I `application.properties` under resources:
+
+```Java  
+spring.h2.console.enabled=true  
+```
+
+- Kør applikationen og find H2 console:  
+    [http://localhost:8080/h2-console/login.jsp](http://localhost:8080/h2-console/login.jsp)
+    
+- H2 er **in-memory database**, data forsvinder når programmet stopper.
+    
+
+---
+
+## 5. Konfiguration – MySQL
+
+Tag backup af H2 config først. I `application.properties`:
+
+```Java  
+spring.datasource.url=jdbc:mysql://127.0.0.1:3306/student  
+spring.datasource.username=jens  
+spring.datasource.password=x  
+spring.jpa.hibernate.ddl-auto=create-drop  
+```
+
+- `create-drop`: databasen slettes ved hver kørsel.
+    
+- Skift til `update`, når du vil beholde data.
+    
+
+**Opret database og bruger i MySQL Workbench**
+
+- Opret database `student`
+    
+- Opret ny bruger med simpel password og alle administrative roller
+    
+
+---
+
+## 6. InitData – Gem testdata
+
+Opret package `config` → klasse `InitData` implementerer `CommandLineRunner`.
+
+```Java  
+@Component  
+public class InitData implements CommandLineRunner {
+
+`@Autowired private StudentRepository studentRepository;  @Override public void run(String... args) throws Exception {     Student s1 = new Student();     s1.setName("Bruce");     s1.setBornDate(LocalDate.of(2010,11,12));     s1.setBornTime(LocalTime.of(10,11,12));     studentRepository.save(s1); }`
+
+}  
+```
+
+**Forklaring:**
+
+- `@Component` gør, at `run` bliver udført ved opstart.
+    
+- `studentRepository.save()` indsætter objektet i databasen.
+    
+
+---
+
+## 7. Opret StudentRepository
+
+Package: `repositories` → interface:
+
+```Java  
+public interface StudentRepository extends JpaRepository<Student, Integer> {  
+}  
+```
+
+**Forklaring:**
+
+- JpaRepository giver CRUD-metoder automatisk (`save`, `findAll`, `delete` osv.).
+    
+- Typeparametre: `<Entity, PrimaryKeyType>`
+    
+
+---
+
+## 8. Simpelt Rest API
+
+Package: `controller` → klasse `StudentRestController`
+
+```Java  
+@RestController  
+public class StudentRestController {
+
+`@Autowired private StudentRepository studentRepository;  @GetMapping("/students") public List<Student> students() {     return studentRepository.findAll(); }`
+
+}  
+```
+
+**Forklaring:**
+
+- `@RestController` gør klassen til en webservice.
+    
+- `@GetMapping("/students")` giver endpoint til at hente alle studerende.
+    
+
+---
+
+## 9. Rest API med parametre
+
+```Java  
+@GetMapping("/students/{name}")  
+public List<Student> getAllStudentsByName(@PathVariable String name) {  
+return studentRepository.findAllByName(name);  
+}  
+```
+
+- Husk at oprette metode i repository:
+    
+
+```Java  
+List<Student> findAllByName(String name);  
+```
+
+**Forklaring:** JPA kan generere SQL baseret på metode-navnet (`findAllByName`).
+
+---
+
+## 10. Spring Boot Test
+
+Opret testklasse til `StudentRepository`:
+
+```Java  
+@SpringBootTest  
+public class StudentRepositoryTest {
+
+`@Autowired private StudentRepository studentRepository;  @Test public void testFindByName() {     List<Student> list = studentRepository.findAllByName("Tim");     assertFalse(list.isEmpty()); }`
+
+}  
+```
+
+**Forklaring:**
+
+- `@SpringBootTest` loader hele Spring context.
+    
+- `@Test` annoterer testmetoder.
+    
+- Autowired repository bruges til at teste JPA-funktionalitet.
+    
+
+---
+
+## 11. Tips
+
+- `spring.jpa.show-sql=true` i `application.properties` viser genereret SQL i konsollen.
+    
+- Eksperimenter med `findAllByBornDate`, `deleteById`, osv.
+    
+- For webservice med Create/Update/Delete skal vi bruge Postman og andre HTTP-verb senere.

@@ -1,0 +1,241 @@
+**OneToOne** betyder:
+
+- 1 række i én SQL-tabel matcher 1 række i en anden tabel
+    
+- Vi bruger 2 entiteter: `User` og `Employee`
+    
+
+I Java kan vi få **cirkulære referencer**:
+
+- `User` peger på `Employee`
+    
+- `Employee` peger på `User`
+    
+- Kan give uendelig rekursion ved JSON-serialisering, hvis ikke håndteret korrekt
+    
+
+---
+
+## 1. Opret Spring projekt
+
+- Nyt Spring projekt → **Maven**
+    
+- Tilføj dependencies:
+    
+    - Spring Web
+        
+    - Spring Data JPA
+        
+    - H2 Database
+        
+    - MySQL Driver
+        
+- Opret package: `model`
+    
+
+---
+
+## 2. User entity
+
+```Java
+@Entity
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int userID;
+    private String email;
+    private String password;
+
+    @OneToOne(mappedBy = "user")
+    private Employee employee;
+
+    // getters og setters
+}
+```
+
+
+**Forklaring:**
+
+- `@Entity` → JPA entity
+    
+- `@Id` + `@GeneratedValue(strategy = IDENTITY)` → auto-increment i MySQL
+    
+- `@OneToOne(mappedBy = "user")` → relationen ejes af `Employee.user`
+    
+
+---
+
+## 3. Employee entity
+
+```Java
+@Entity
+public class Employee {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int employeeID;
+    private String name;
+    private LocalDateTime born;
+    private Gender gender;
+    private boolean vegetarian;
+
+    @OneToOne
+    @JoinColumn(name = "useridfk", referencedColumnName = "userID", nullable = false)
+    private User user;
+
+    // getters og setters
+}
+```
+
+
+**Forklaring:**
+
+- `@JoinColumn` → foreign key `useridfk` peger på `userID`
+    
+- `nullable = false` → Employee kan ikke eksistere uden en User
+    
+
+---
+
+## 4. Konfiguration i `application.properties`
+
+```Java
+spring.application.name=UserEmployee
+spring.datasource.url=jdbc:mysql://127.0.0.1:3306/useremployee
+spring.datasource.username=jens
+spring.datasource.password=x
+spring.jpa.hibernate.ddl-auto=create-drop
+spring.jpa.show-sql=true
+```
+
+
+- `create-drop` → sletter databasen ved hver kørsel
+    
+- `spring.jpa.show-sql=true` → viser genereret SQL i konsollen
+    
+
+---
+
+## 5. InitData – indsæt testdata
+
+Opret package `config` → klasse `InitData implements CommandLineRunner`
+
+```Java
+@Component
+public class InitData implements CommandLineRunner {
+
+    @Autowired private UserRepository userRepository;
+    @Autowired private EmployeeRepository employeeRepository;
+
+    @Override
+    public void run(String... args) throws Exception {
+        User us1 = new User();
+        us1.setEmail("jens@aol.com");
+        us1.setPassword("pasrdjalk");
+        userRepository.save(us1);
+
+        Employee emp1 = new Employee();
+        emp1.setBorn(LocalDateTime.of(1990,5,10,16,10,12));
+        emp1.setName("Jens");
+        emp1.setGender(Gender.MALE);
+        emp1.setVegetarian(true);
+        emp1.setUser(us1);
+        employeeRepository.save(emp1);
+    }
+}
+```
+
+
+**Forklaring:**
+
+- `@Component` → `run` køres ved opstart
+    
+- Gemmer en User og en Employee i databasen
+    
+
+---
+
+## 6. Repositories
+
+```Java
+public interface UserRepository extends JpaRepository<User, Integer> {
+}
+
+public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
+    List<Employee> findEmployeeByName(String name);
+}
+```
+
+
+- JpaRepository giver CRUD-metoder automatisk
+    
+- `findEmployeeByName` genererer SQL baseret på metode-navnet
+    
+
+---
+
+## 7. Unit Test
+
+```Java
+@SpringBootTest
+public class EmployeeRepositoryTest {
+
+    @Autowired private EmployeeRepository employeeRepository;
+
+    @Test
+    public void testFindEmployeeByName() {
+        List<Employee> list = employeeRepository.findEmployeeByName("Jens");
+        assertFalse(list.isEmpty());
+    }
+}
+```
+
+
+**Forklaring:**
+
+- `@SpringBootTest` loader Spring context
+    
+- `@Test` annoterer testmetoder
+    
+- Kan også teste, at man ikke kan slette en User med en Employee (`assertThrows`)
+    
+
+---
+
+## 8. RestController – vis Employees
+
+```Java
+@RestController
+public class EmployeeRestController {
+
+    @Autowired private EmployeeRepository employeeRepository;
+
+    @GetMapping("/employees")
+    public List<Employee> employees() {
+        return employeeRepository.findAll();
+    }
+}
+```
+
+
+**Problem:**
+
+- Uendelig rekursion ved JSON-serialisering (Employee → User → Employee)
+    
+- Løsning: brug `@JsonBackReference` i User eller Employee
+    
+
+---
+
+## 9. Cascade (valgfrit)
+
+- Tilføj cascade i User, så operationer på User også påvirker Employee
+    
+
+```Java
+@OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+private Employee employee;
+```
+
+- Test unittests igen for at se cascade-funktion

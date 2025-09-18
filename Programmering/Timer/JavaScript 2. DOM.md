@@ -1,0 +1,431 @@
+# JavaScript Dropdown Color – GUI Tutorial
+
+Vi laver en dropdown, som fyldes med farver, og hvor valget sætter baggrundsfarven på `body`.
+
+---
+
+## 1. Opret HTML og JS filer
+
+- Opret `dropdowncolor.html`
+    
+- Tilføj en dropdown med `id=ddColor`
+    
+
+```HTML
+<select id="ddColor"></select>
+<button id="pbFillDropdown">Fyld dropdown</button>
+```
+
+
+- Opret `ddcolor.js` og referer i HTML:
+    
+
+```HTML
+<script src="js/ddcolor.js"></script>
+```
+
+
+---
+
+## 2. Opret farve-array i ddcolor.js
+
+```JavaScript
+const colArray = ["red", "green", "yellow", "blue", "orange"];
+```
+
+
+**Forklaring:**
+
+- Array med farver, der skal vises i dropdown
+    
+
+---
+
+## 3. Peg på knap og tilføj eventlistener
+
+```JavaScript
+const pbFillDropdown = document.getElementById("pbFillDropdown");
+
+pbFillDropdown.addEventListener("click", addColors);
+```
+
+
+**Forklaring:**
+
+- Når knappen trykkes, kaldes `addColors`
+    
+
+---
+
+## 4. Funktion til at fylde dropdown
+
+```JavaScript
+function addColors() {
+    ddColor.innerHTML = ""; // ryd eksisterende optioner
+    colArray.forEach(fillDropdown);
+}
+```
+
+
+**Forklaring:**
+
+- Først ryddes dropdown
+    
+- Derefter tilføjes alle farver via `fillDropdown`
+    
+
+---
+
+## 5. Funktion til at oprette option-elementer
+
+```JavaScript
+function fillDropdown(item) {
+    const el = document.createElement("option");
+    el.textContent = item;
+    ddColor.appendChild(el);
+}
+```
+
+
+**Forklaring:**
+
+- `document.createElement("option")` opretter option-element
+    
+- `textContent` viser farven
+    
+- `appendChild` tilføjer til dropdown
+    
+
+---
+
+## 6. Eventlistener på dropdown
+
+```JavaScript
+ddColor.addEventListener("change", setBackgroundColor);
+```
+
+
+**Forklaring:**
+
+- Lytter på ændring af valgt farve
+    
+
+---
+
+## 7. Funktion til at sætte baggrundsfarve
+
+```JavaScript
+function setBackgroundColor() {
+    const selIndex = ddColor.selectedIndex;
+    const selectedOption = ddColor.options[selIndex];
+    const color = selectedOption.innerText;
+    document.body.style.backgroundColor = color;
+}
+```
+
+
+**Forklaring:**
+
+- Henter valgt option
+    
+- Sætter `body` baggrundsfarve
+    
+
+---
+
+## 8. Udvidelse: Navngivne farver i 2D-array
+
+```JavaScript
+const colArray2 = [
+    ["red","#ff0000"], 
+    ["green","#00ff00"], 
+    ["yellow","#ffff00"], 
+    ["purple","#1f35a9"]
+];
+```
+
+
+- Dropdown viser `item[0]` (navn)
+    
+- Brug `item[1]` (hex) til baggrundsfarve
+    
+
+---
+
+## 9. Fyld dropdown med navn og value
+
+```JavaScript
+function fillDropdown2(item) {
+    const el = document.createElement("option");
+    el.textContent = item[0]; // navn
+    el.value = item[1];       // hex
+    ddColor2.appendChild(el);
+}
+```
+
+
+**Forklaring:**
+
+- Kun navnet vises i dropdown
+    
+- Hex-værdien bruges til at sætte farven
+    
+
+---
+
+## 10. Baggrundsfarve med 2D-array
+
+```JavaScript
+ddColor2.addEventListener("change", () => {
+    const selIndex = ddColor2.selectedIndex;
+    const selectedOption = ddColor2.options[selIndex];
+    const color = selectedOption.value; // hex
+    document.body.style.backgroundColor = color;
+});
+```
+
+
+**Forklaring:**
+
+- Brug `value` til at sætte baggrundsfarve
+    
+- Dropdown viser navn, men farven bruges fra value
+    
+
+---
+
+## 11. Valgfrit: Farver som objekter
+
+```JavaScript
+const colorObjects = [
+    {name:"red", hex:"#ff0000", id:1},
+    {name:"green", hex:"#00ff00", id:2}
+];
+
+function fillDropdownObj(item) {
+    const el = document.createElement("option");
+    el.textContent = item.name;
+    el.value = item.hex;
+    el.colorItem = item; // gem objektet på elementet
+    ddColorObj.appendChild(el);
+}
+```
+
+
+**Forklaring:**
+
+- Hver option kan holde et helt objekt (`colorItem`)
+    
+- Kan tilgås senere i `setBackgroundColor`
+    
+
+---
+
+## 12. Brug objektet til baggrund
+
+```JavaScript
+ddColorObj.addEventListener("change", () => {
+    const selIndex = ddColorObj.selectedIndex;
+    const selectedOption = ddColorObj.options[selIndex];
+    const color = selectedOption.colorItem.hex;
+    document.body.style.backgroundColor = color;
+});
+```
+
+
+**Forklaring:**
+
+- Henter farven direkte fra objektet
+    
+- Muliggør mere avancerede attributter end kun hex
+
+
+
+
+
+
+
+# JavaScript SetClassName – GUI Tutorial
+
+Vi eksperimenterer med at sætte `className` på HTML-elementer.
+
+---
+
+## 1. Opret HTML og CSS
+
+- Projekt: `setclassname`
+    
+- `index.html`:
+    
+
+```HTML
+<p>Choose element and set selected style</p>
+<button id="pbSetStyle">Change style</button>
+<input id="elementName" type="text"/>
+<input id="styleName" type="text"/>
+
+<br>
+<input class='inp1' type="text"/>
+<input class='inp2' type="text"/>
+<input class='inp3' type="text"/>
+<input class='inp4' type="text"/>
+```
+
+
+- Opret `css/style.css` med eksempler:
+    
+
+```CSS
+.bigfont {
+ font-family: Arial;
+ font-size: 30px;
+}
+.input1 {
+ padding: 10px;
+ border: 2px solid #3498db;
+ border-radius: 25px;
+ font-size: 16px;
+}
+.input2 {
+ padding: 10px;
+ border: 1px solid #ccc;
+ border-radius: 5px;
+ font-size: 16px;
+}
+```
+
+
+**Forklaring:**
+
+- `bigfont` og `input1/2` bruges til styling
+    
+- HTML inputfelter får forskellige `class`
+    
+- Link CSS i `index.html`:
+    
+
+```HTML
+<link rel="stylesheet" href="css/style.css">
+```
+
+
+---
+
+## 2. Opret JavaScript fil
+
+- `js/setclassname.js`
+    
+- Link i `index.html`:
+    
+
+```HTML
+<script src="js/setclassname.js"></script>
+```
+
+
+---
+
+## 3. Peg på inputfelter og knap
+
+```JavaScript
+const inpElement = document.getElementById("elementName");
+const inpStyleName = document.getElementById("styleName");
+const pbSetStyle = document.getElementById("pbSetStyle");
+```
+
+
+**Forklaring:**
+
+- Første input: tag/class eller elementnavn
+    
+- Andet input: style/classname
+    
+- Knap til at eksekvere
+    
+
+---
+
+## 4. Funktion til at tilføje style
+
+```JavaScript
+pbSetStyle.addEventListener("click", () => {
+    const elm = document.querySelector(`.${inpElement.value}`);
+    console.log(elm);
+    elm.className = inpStyleName.value; // overskriver eksisterende class
+});
+```
+
+
+**Forklaring:**
+
+- Finder element via `querySelector`
+    
+- Overskriver `className` – problem: eksisterende classes fjernes
+    
+
+---
+
+## 5. Brug classList i stedet for className
+
+```JavaScript
+pbSetStyle.addEventListener("click", () => {
+    const elm = document.querySelector(`.${inpElement.value}`);
+    elm.classList.add(inpStyleName.value); // beholder eksisterende class
+});
+```
+
+
+**Forklaring:**
+
+- `classList` kan tilføje en ny class uden at overskrive eksisterende
+    
+
+---
+
+## 6. Tilføj mulighed for at style alle elementer af en type
+
+```JavaScript
+pbSetStyle.addEventListener("click", () => {
+    const tagName = inpElement.value; // f.eks. 'p' eller 'input'
+    const styleName = inpStyleName.value;
+    const elements = document.getElementsByTagName(tagName);
+    Array.from(elements).forEach(el => el.classList.add(styleName));
+});
+```
+
+
+**Forklaring:**
+
+- Brugeren kan indtaste HTML-tag (f.eks. `p`)
+    
+- Alle tags af denne type får tilføjet den indtastede style
+    
+
+---
+
+## 7. Eksempel på HTML med flere tags
+
+```HTML
+<p>Paragraph 1</p>
+<p>Paragraph 2</p>
+<input type="text" />
+<input type="text" />
+```
+
+
+- Indtast `p` i første input, og `bigfont` i andet input → alle `<p>` tags får style
+    
+- Indtast `input` og `input1` → alle inputfelter får style
+    
+
+---
+
+## 8. Bemærkninger
+
+- `className` overskriver altid eksisterende classes
+    
+- `classList.add()` tilføjer uden at overskrive
+    
+- `Array.from()` konverterer HTMLCollection til Array, så man kan bruge `.forEach()`
+    
+- Kan kombineres med `setBackgroundColor` eller andre GUI-funktioner fra tidligere tutorials
