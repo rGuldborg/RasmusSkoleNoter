@@ -36,7 +36,10 @@
 - Eksempel: Kør en Nginx container lokalt:
     
 
-`docker run -d -p 8080:80 nginx`
+```bash
+docker run -d -p 8080:80 nginx
+```
+
 
 - Forklaring:
     
@@ -64,12 +67,20 @@
 
 ## f. Håndtering af porte
 
-- Docker-mapping af porte: `-p <host-port>:<container-port>`
+- Docker-mapping af porte: 
+-
+```bash
+-p <host-port>:<container-port>
+```
+
     
 - Eksempel:
     
 
-`docker run -d -p 3306:3306 mysql`
+```bash
+docker run -d -p 3306:3306 mysql
+```
+
 
 - Host kan nu tilgå MySQL på port 3306, container isoleres stadig internt.
     
@@ -81,14 +92,27 @@
 1. Start MySQL container:
     
 
-`docker run -d -p 3306:3306 --name my-mysql -e MYSQL_ROOT_PASSWORD=root mysql:latest`
+```bash
+docker run -d -p 3306:3306 --name my-mysql -e MYSQL_ROOT_PASSWORD=root mysql:latest
+```
+
 
 2. Tilgå container fra host:
     
 
-`mysql -h 127.0.0.1 -P 3306 -u root -p`
+```bash
+mysql -h 127.0.0.1 -P 3306 -u root -p
+```
+
 
 3. Eksempler på SQL-kommandoer:
     
 
-`CREATE DATABASE testdb; USE testdb; CREATE TABLE users (id INT PRIMARY KEY, name VARCHAR(50)); INSERT INTO users VALUES (1, 'Alice'), (2, 'Bob'); SELECT * FROM users;`
+```sql
+CREATE DATABASE testdb;
+USE testdb;
+CREATE TABLE users (id INT PRIMARY KEY, name VARCHAR(50));
+INSERT INTO users VALUES (1, 'Alice'), (2, 'Bob');
+SELECT * FROM users;
+```
+

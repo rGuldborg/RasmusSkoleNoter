@@ -5,12 +5,18 @@
 - Kommando:
     
 
-`ssh <brugernavn>@<IP-adresse>`
+```bash
+ssh <brugernavn>@<IP-adresse>
+```
+
 
 - Hvis privat nøgle bruges:
     
 
-`ssh -i <private-key.pem> <brugernavn>@<IP-adresse>`
+```bash
+ssh -i <private-key.pem> <brugernavn>@<IP-adresse>
+```
+
 
 - Efter login har du shell-adgang til den virtuelle maskine.
     
@@ -21,11 +27,17 @@
 
 ### i. Liste alle filer (inkl. skjulte)
 
-`ls -a`
+```bash
+ls -a
+```
+
 
 ### ii. Liste detaljer om filer/folders inkl. rettigheder
 
-`ls -l`
+```bash
+ls -l
+```
+
 
 - Viser permissions, ejer, gruppe, størrelse og sidste ændring
     
@@ -35,7 +47,10 @@
 - Brug **nano**:
     
 
-`nano filnavn.txt`
+```bash
+nano filnavn.txt
+```
+
 
 - Gem: `Ctrl+O`, luk: `Ctrl+X`
     
@@ -44,22 +59,59 @@
 
 ### iv. Oprette, flytte og slette filer/directories
 
-`# Opret fil touch fil.txt # Opret mappe mkdir mappe # Flyt fil/mappen mv fil.txt mappe/ # Kopier fil cp fil.txt mappe/ # Slet fil rm fil.txt # Slet mappe rm -r mappe`
+```bash
+# Opret fil
+touch fil.txt
+
+# Opret mappe
+mkdir mappe
+
+# Flyt fil/mappen
+mv fil.txt mappe/
+
+# Kopier fil
+cp fil.txt mappe/
+
+# Slet fil
+rm fil.txt
+
+# Slet mappe
+rm -r mappe
+```
+
 
 ### v. Start/stop/restart service (Docker eksempel)
 
-`sudo systemctl start docker sudo systemctl stop docker sudo systemctl restart docker sudo systemctl status docker`
+```bash
+sudo systemctl start docker
+sudo systemctl stop docker
+sudo systemctl restart docker
+sudo systemctl status docker
+```
+
 
 ### vi. Kør kommandoer med administratorrettigheder
 
-`sudo <kommando>`
+```bash
+sudo <kommando>
+```
 
-- Fx: `sudo apt update`
+Eksempel
+```bash
+sudo apt update
+```
     
 
 ### vii. Eksekvere filer og ændre rettigheder
 
-`# Gør script eksekverbart chmod +x script.sh # Kør script ./script.sh`
+```bash
+# Gør script eksekverbart
+chmod +x script.sh
+
+# Kør script
+./script.sh
+```
+
 
 ---
 
@@ -68,19 +120,33 @@
 - Opdater pakkeliste:
     
 
-`sudo apt update`
+```bash
+sudo apt update
+```
+
 
 - Installer Docker:
     
 
-`sudo apt install docker.io`
+```bash
+sudo apt install docker.io
+```
+
 
 - Aktivér Docker og start ved boot:
     
 
-`sudo systemctl enable docker sudo systemctl start docker`
+```bash
+sudo systemctl enable docker
+sudo systemctl start docker
+```
+
 
 - Test installation:
     
 
-`docker --version docker run hello-world`
+```bash
+docker --version
+docker run hello-world
+```
+

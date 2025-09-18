@@ -25,6 +25,7 @@ Filen indeholder
 Derudover henter vi scriptet fra javascript filen vha.
 	script med source fra clickgame.js
 
+---
 ## 2. Import
 For at importere disse funktioner fra html, opretter vi konstanter i scriptet
 ```Javascript
@@ -33,6 +34,7 @@ const scoreElement = document.getElementById("score");
 const startButton = document.getElementById("start-btn");
 ```
 
+---
 ## 3. Spilvindue
 Spilvinduet bliver defineret ved hjælp af stylingfunktioner fra css bilbiotek
 ```Javascript
@@ -44,6 +46,7 @@ gameContainer.style.border = "10px solid black";
 	
 Højde og bredde er sat til næsten at fylde hele sidens indhold
 
+---
 ## 4. Variabler
 For at holde overblik over spillets længde og funktioner oprettes der variabler på score, spawn af kasser og en konstant der fortæller os hvor mange kasser der kan være i det hele
 ```Javascript
@@ -53,6 +56,7 @@ const maxBoxes = 30;
 let intervalId;
 ```
 
+---
 ## 5. Opdatering af score
 Vi tilføjer en funktioner der opdaterer den grafiske visning af den nuværende score
 ```Javascript
@@ -64,6 +68,7 @@ function updateScore(points) {
 	
 Senere bliver tilføjelsen af pointsystemet beskrevet. Score som grafisk bliver vist på skærmen ved hjælp af innerHTML opdateres efter points
 
+---
 ## 6. Opret en kasse
 Den nok vigtigste funktion i spillet er at oprette en kasse
 ```Javascript
@@ -112,6 +117,7 @@ Vi tilføjer et event "click", der fjerner kassen og giver +1 til score når de 
 	
 Til sidst opretter vi en timeout for spawns af kassen. Efter et sekund fjernes kassen af sig selv.
 
+---
 ## 7. Start spillet
 Vi opretter en funktion der starter spillet
 ```Javascript
